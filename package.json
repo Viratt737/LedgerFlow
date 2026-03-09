@@ -1,0 +1,25 @@
+{
+  "name": "bank-transaction-syatem",
+  "version": "1.0.0",
+  "description": "A simple Bank Transaction Tracking System that allows users to manage accounts, track transactions, and maintain real-time balance updates. The system records deposits, withdrawals, and transaction history while ensuring accurate balance management.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Viratt737/LedgerFlow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Viratt737/LedgerFlow/issues"
+  },
+  "homepage": "https://github.com/Viratt737/LedgerFlow#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14"
+  }
+}
