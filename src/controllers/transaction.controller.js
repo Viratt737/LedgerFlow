@@ -120,8 +120,8 @@ async function createTransaction(req, res){
    const creditLedgerEntry = await ledgerModel.create({
     account : toAccount,
     amount : amount,
-    transaction : tranaction._id,
-    type: "DEBIT"
+    transaction : transaction._id,
+    type: "CREDIT"
    }, {session})
 
 //    9 transaction status complete
@@ -164,13 +164,13 @@ async function createInitialFundsTransaction(req, res){
 
     if(!toUserAccount){
         return res.status(400).json({
-            msg:"Invail toAccount"
+            msg:"Invaild toAccount"
         })
     }
 
     const fromUserAccount = await accountModel.findOne({
         systemUser: true,
-        currency : req.user._id
+        user : req.user._id
     })
 
     if(!fromUserAccount){
@@ -178,6 +178,44 @@ async function createInitialFundsTransaction(req, res){
             msg:"System user account not found"
         })
     }
+
+    const session = await mongoose.startSession()
+    session.startTransaction();
+
+    const transaction = new transactionModel({
+        fromAccount : fromUserAccount._id,
+        toAccount,
+        amount,
+        idempotencyKey,
+        status:"PENDING"
+    })
+
+    const debitLedgerEntry = await ledgerModel.create([{
+      account : fromUserAccount,
+      amount : amount,
+      transaction : transaction._id,
+      type : "DEBIT"
+   }] ,{session})
+
+   const creditLedgerEntry = await ledgerModel.create([{
+    account : toAccount,
+    amount : amount,
+    transaction : transaction._id,
+    type: "CREDIT"
+   }] , {session})
+ 
+
+   transaction.status = "COMPLETED"
+   await transaction.save({session})
+
+   await session.commitTransaction()
+   session.endSession()
+
+
+   return res.status(201).json({
+    msg : "Initial funs transaction completed succesfully !!",
+    transaction: transaction
+   })
 }
 
 module.exports = {

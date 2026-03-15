@@ -48,7 +48,7 @@ async function sendRegistratiinEmail(userEmail, name){
     await sendEmail(userEmail, subject, text, html);
 }
 
-async function sendTransactionEmail(userEmail, name, amount, toAccount ){
+async function sendTransactionEmail(userEmail, name,amount, toAccount ){
     const subject = 'Transaction SuccessFull';
 
     const text = `Hello ${name},\n\nYour transaction of ${amount} to account ${toAccount} was successful.\n\n
