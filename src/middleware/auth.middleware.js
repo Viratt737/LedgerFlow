@@ -38,7 +38,8 @@ async function authSystemUserMiddleware(req, res, next){
                 msg:"Forbidden access, not a system user"
             })
         }
-
+     req.user = user; 
+     next()
     }catch(err){
         console.log(err);
          return res.status(401).json({

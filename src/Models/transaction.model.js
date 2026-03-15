@@ -21,7 +21,7 @@ const transactionSchema = new mongoose.Schema({
         },
         default:"PENDING"
     },
-    amonut:{
+    amount:{
         type:Number,
         required:[true, "Amonut is required for creating a transaction"],
         min  :[0, "Transaction amount cannot be negative"]

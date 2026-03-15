@@ -169,7 +169,7 @@ async function createInitialFundsTransaction(req, res){
     }
 
     const fromUserAccount = await accountModel.findOne({
-        systemUser: true,
+        // systemUser: true,
         user : req.user._id
     })
 
