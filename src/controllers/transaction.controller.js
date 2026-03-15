@@ -4,6 +4,21 @@ const emailService = require('../services/email.service');
 const accountModel = require('../Models/account.model');
 const mongoose = require('mongoose');
 
+/** 
+ * create a new transaction
+ * the 10 step Transfer flow :
+ * 1. validate request
+ * 2. validate idempotency key
+ * 3. check account status
+ * 4. Derive sender balance from ledger
+ * 5. create transaction(pending)
+ * 6. create debit ledger entry
+ * 7. create creadit ledger entry
+ * 8. mark transaction completed
+ * 9. commit mongoDb session
+ * 10 send email notification
+ */
+
 
 async function createTransaction(req, res){
     // check valid request is coming or not
@@ -81,6 +96,8 @@ async function createTransaction(req, res){
     const session = await mongoose.startSession()
     session.startTransaction();
 
+// 6 transaction info
+
     const transaction = await transactionModel.create({
         fromAccount,
         toAccount,
@@ -89,6 +106,8 @@ async function createTransaction(req, res){
         status: "PENDING"
     }, {session})
 
+// 7 debitledger
+
    const debitLedgerEntry = await ledgerModel.create({
       account : fromAccount,
       amount : amount,
@@ -96,14 +115,38 @@ async function createTransaction(req, res){
       type : "DEBIT"
    },{session})
 
+//    8 creditLedger
+
    const creditLedgerEntry = await ledgerModel.create({
     account : toAccount,
     amount : amount,
     transaction : tranaction._id,
     type: "DEBIT"
    }, {session})
-}
 
+//    9 transaction status complete
+
+   transaction.status = "COMPLETED"
+
+//    10 send email notifiction
+// await emailService.sendTransactionEmail(req.user.email, req.user.name, amount, toAccount){
+//     return res.status(201).json({
+//         msg:"Transaction completed successfully",
+//         transaction : transaction
+//     })
+// }
+await emailService.sendTransactionEmail(
+    req.user.email,
+    req.user.name,
+    amount,
+    toAccount
+);
+return res.status(201).json({
+    msg: "Transaction completed successfully",
+    transaction: transaction
+});
+
+}
 
 
 async function createInitialFundsTransaction(req, res){
@@ -138,5 +181,6 @@ async function createInitialFundsTransaction(req, res){
 }
 
 module.exports = {
-    createTransaction
+    createTransaction,
+    createInitialFundsTransaction
 }
