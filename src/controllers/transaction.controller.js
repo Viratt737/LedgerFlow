@@ -90,7 +90,8 @@ async function createTransaction(req, res){
             msg: `Insufficient balance. Current balance is ${balance}. Requested increase your current amount ${amount}`
         })
     }
-
+    let transaction;
+try{
     // 5 create transation(pending)
 
     const session = await mongoose.startSession()
@@ -98,13 +99,15 @@ async function createTransaction(req, res){
 
 // 6 transaction info
 
-    const transaction = new transactionModel({
+    transaction = (await transactionModel.create([{
         fromAccount,
         toAccount,
         amount,
         idempotencyKey,
         status: "PENDING"
-    })
+    }], {session})) [ 0 ]
+
+ await transaction.save({ session });
 
 // 7 debitledger
 
@@ -115,6 +118,9 @@ async function createTransaction(req, res){
       type : "DEBIT"
    }],{session})
 
+await ( () => {
+    return new Promise((resolve) => setTimeout(resolve, 100 * 1000))
+})
 //    8 creditLedger
 
    const creditLedgerEntry = await ledgerModel.create([{
@@ -126,8 +132,22 @@ async function createTransaction(req, res){
 
 //    9 transaction status complete
 
-   transaction.status = "COMPLETED"
+ await transactionModel.findOneAndUpdate(
+    {
+        _id: transaction._id
+    },
+    { status : "COMPLETED"},
+    {session}
+ )
 
+   await session.commitTransaction()
+   session.endSession()
+   }catch(error){
+     return res.status(400).json({
+        msg : "Transaction is pending due to some issue, please retry afetr some time"
+     })
+  
+   }
 //    10 send email notifiction
 
 await emailService.sendTransactionEmail(
