@@ -1,5 +1,5 @@
 const accountModel = require('../Models/account.model');
-
+const mongoose = require('mongoose');
 
 async function createAccountController(req, res){
     const user = req.user;
@@ -18,7 +18,36 @@ async function getUserAccountsControllers(req, res){
         accounts
     })
 }
+
+async function getAccountBalanceControllers(req, res){
+    const { accountId } = req.params;
+
+    if(!mongoose.Types.ObjectId.isValid(accountId)){
+        return res.status(400).json({
+            msg: "Invalid Account ID"
+        })
+    }
+
+    const account = await accountModel.findOne({
+        _id: accountId,
+        user: req.user._id
+    })
+
+    if(!account){
+        return res.status(404).json({
+            msg : "Account not found"
+        })
+    }
+
+    const balance = await account.getBalance();
+
+    res.status(200).json({
+        accountId : account._id,
+        balance: balance
+    })
+}
 module.exports ={
     createAccountController,
-    getUserAccountsControllers
+    getUserAccountsControllers,
+    getAccountBalanceControllers
 }

@@ -98,43 +98,38 @@ async function createTransaction(req, res){
 
 // 6 transaction info
 
-    const transaction = await transactionModel.create({
+    const transaction = new transactionModel({
         fromAccount,
         toAccount,
         amount,
         idempotencyKey,
         status: "PENDING"
-    }, {session})
+    })
 
 // 7 debitledger
 
-   const debitLedgerEntry = await ledgerModel.create({
+   const debitLedgerEntry = await ledgerModel.create([{
       account : fromAccount,
       amount : amount,
       transaction : transaction._id,
       type : "DEBIT"
-   },{session})
+   }],{session})
 
 //    8 creditLedger
 
-   const creditLedgerEntry = await ledgerModel.create({
+   const creditLedgerEntry = await ledgerModel.create([{
     account : toAccount,
     amount : amount,
     transaction : transaction._id,
     type: "CREDIT"
-   }, {session})
+   }], {session})
 
 //    9 transaction status complete
 
    transaction.status = "COMPLETED"
 
 //    10 send email notifiction
-// await emailService.sendTransactionEmail(req.user.email, req.user.name, amount, toAccount){
-//     return res.status(201).json({
-//         msg:"Transaction completed successfully",
-//         transaction : transaction
-//     })
-// }
+
 await emailService.sendTransactionEmail(
     req.user.email,
     req.user.name,
