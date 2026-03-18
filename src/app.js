@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.get('/', (res,req) =>{
+app.get('/', (req, res) =>{
     res.send("Leger service is up and runing")
 })
 app.use('/api/auth', authRouter);
