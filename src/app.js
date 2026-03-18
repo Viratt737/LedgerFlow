@@ -8,6 +8,9 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+app.get('/', (res,req) =>{
+    res.setEncoding("Leger service is up and runing")
+})
 app.use('/api/auth', authRouter);
 app.use('/api/accounts',accountRouter);
 app.use('/api/transactions',transactionRoutes);
